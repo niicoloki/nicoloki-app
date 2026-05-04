@@ -131,7 +131,7 @@ function NicoleDialog({ onClose }) {
     setTyping(true);
 
     // отправляем на сервер
-   fetch("https://nicoloki-app-production.up.railway.app/api/nicole", {
+    fetch("https://nicoloki-app-production.up.railway.app/api/nicole", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -876,14 +876,25 @@ function toggleRadio() {
     } catch {}
   }
 
-  const TRACKS = [
-    "Гнев.wav", "Тишина.wav", "Свобода.wav", "Нежность.wav",
-    "Думаешь это шутка.wav", "Земля (Тает).wav", "Кричу.wav",
-    "Медный всадник.wav", "Надежда.wav", "Не догнать.wav",
-    "Не отключайся.wav", "Одиночество.wav", "Система на нуле.wav",
-    "Старик и Липси.wav", "Страх.wav", "Тик-Так.wav",
-    "Тире-точка.wav", "Цветы обещания.wav",
-  ];
+const TRACKS = [
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Гнев_ltbllf.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/Тишина_hfyx6c.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Свобода_tyd1s4.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Думаешь_это_шутка_mps3ji.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Земля_Тает_hxy7jk.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928013/Кричу_yhodpx.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928022/Медный_всадник_bjddmd.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Надежда_ms2bjw.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928017/Не_догнать_lnp0yf.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928025/Одиночество_eyx6r9.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928008/Система_на_нуле_hccnkk.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Старик_и_Липси_tckgm9.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Страх_hbfpbh.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928015/Тик-Так_eidl36.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/%D0%A2%D0%B8%D1%80%D0%B5-%D1%82%D0%BE%D1%87%D0%BA%D0%B0_v6i3f7.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928020/Цветы_обещания_cluqxu.wav",
+  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928023/Мир_без_границ_II_ffv9ah.wav",
+];
   const radioIndexRef = useRef(0);
 
   function playTrack(index) {
