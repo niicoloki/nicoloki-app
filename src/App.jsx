@@ -584,6 +584,178 @@ function SnakeGame({ onClose }) {
     </div>
   );
 }
+// ── ШАХМАТЫ ───────────────────────────────────
+const PIECES = {
+  wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',
+  bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟',
+};
+
+function initBoard() {
+  const b = Array(8).fill(null).map(() => Array(8).fill(null));
+  const order = ['R','N','B','Q','K','B','N','R'];
+  order.forEach((p,i) => { b[0][i]='b'+p; b[7][i]='w'+p; });
+  for(let i=0;i<8;i++) { b[1][i]='bP'; b[6][i]='wP'; }
+  return b;
+}
+
+function ChessGame() {
+  const [board, setBoard] = useState(initBoard());
+  const [selected, setSelected] = useState(null);
+  const [turn, setTurn] = useState('w');
+  const [moves, setMoves] = useState([]);
+  const [status, setStatus] = useState('');
+  const mobile = window.innerWidth < 600;
+  const cell = mobile ? 36 : 56;
+
+  function getMoves(b, r, c, checkSafety=true) {
+    const p = b[r][c]; if(!p) return [];
+    const color = p[0], type = p[1];
+    const res = [];
+    const enemy = color==='w'?'b':'w';
+
+    function add(nr,nc) {
+      if(nr<0||nr>7||nc<0||nc>7) return false;
+      if(b[nr][nc]&&b[nr][nc][0]===color) return false;
+      res.push([nr,nc]);
+      return !b[nr][nc];
+    }
+    function slide(dr,dc) { let nr=r+dr,nc=c+dc; while(add(nr,nc)){nr+=dr;nc+=dc;} }
+
+    if(type==='P') {
+      const dir = color==='w'?-1:1;
+      const start = color==='w'?6:1;
+      if(!b[r+dir]?.[c]) { res.push([r+dir,c]); if(r===start&&!b[r+2*dir]?.[c]) res.push([r+2*dir,c]); }
+      [-1,1].forEach(dc => { if(b[r+dir]?.[c+dc]?.[0]===enemy) res.push([r+dir,c+dc]); });
+    }
+    if(type==='R'||type==='Q') { slide(1,0);slide(-1,0);slide(0,1);slide(0,-1); }
+    if(type==='B'||type==='Q') { slide(1,1);slide(1,-1);slide(-1,1);slide(-1,-1); }
+    if(type==='N') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
+    if(type==='K') { [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
+
+    if(!checkSafety) return res;
+    return res.filter(([nr,nc]) => {
+      const nb = board.map(row=>[...row]);
+      nb[nr][nc]=p; nb[r][c]=null;
+      return !isInCheck(nb,color);
+    });
+  }
+
+  function isInCheck(b,color) {
+    let kr=-1,kc=-1;
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++) if(b[r][c]===color+'K'){kr=r;kc=c;}
+    const enemy=color==='w'?'b':'w';
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+      if(b[r][c]?.[0]===enemy) {
+        if(getMoves(b,r,c,false).some(([nr,nc])=>nr===kr&&nc===kc)) return true;  // ← заменить на отдельную ф-ю
+      }
+    }
+    return false;
+  }
+
+  function aiMove(b) {
+    const enemy = 'b';
+    let best=null, bestScore=-Infinity;
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+      if(b[r][c]?.[0]!==enemy) continue;
+      const ms = getMoves(b,r,c);
+      ms.forEach(([nr,nc]) => {
+        const nb=b.map(row=>[...row]);
+        nb[nr][nc]=b[r][c]; nb[r][c]=null;
+        const score = scoreBoard(nb,'b') + Math.random()*0.5;
+        if(score>bestScore){bestScore=score;best={r,c,nr,nc};}
+      });
+    }
+    if(!best) return b;
+    const nb=b.map(row=>[...row]);
+    nb[best.nr][best.nc]=b[best.r][best.c]; nb[best.r][best.c]=null;
+    return nb;
+  }
+
+  const pieceVal = {P:1,N:3,B:3,R:5,Q:9,K:0};
+  function scoreBoard(b,color) {
+    let score=0;
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
+      const p=b[r][c]; if(!p) continue;
+      const v=pieceVal[p[1]]||0;
+      score += p[0]===color?v:-v;
+    }
+    return score;
+  }
+
+  function click(r,c) {
+    if(turn!=='w') return;
+    if(selected) {
+      const [sr,sc]=selected;
+      if(moves.some(([mr,mc])=>mr===r&&mc===c)) {
+        const nb=board.map(row=>[...row]);
+        nb[r][c]=board[sr][sc]; nb[sr][sc]=null;
+        // превращение пешки
+        if(nb[r][c]==='wP'&&r===0) nb[r][c]='wQ';
+        if(nb[r][c]==='bP'&&r===7) nb[r][c]='bQ';
+        setSelected(null); setMoves([]);
+        setTurn('b');
+        setTimeout(() => {
+          const ab=aiMove(nb);
+          setBoard(ab);
+          setTurn('w');
+          // проверка мата
+          let hasMoves=false;
+          for(let rr=0;rr<8;rr++) for(let cc=0;cc<8;cc++) {
+            if(ab[rr][cc]?.[0]==='w'&&getMoves(ab,rr,cc).length>0) hasMoves=true;
+          }
+          if(!hasMoves) setStatus(isInCheck(ab,'w')?'МАТ. ТЫ ПРОИГРАЛА.':'ПАТ.');
+          setBoard(ab);
+        }, 300);
+        setBoard(nb);
+        return;
+      }
+      setSelected(null); setMoves([]);
+    }
+    if(board[r][c]?.[0]==='w') {
+      setSelected([r,c]);
+      setMoves(getMoves(board,r,c));
+    }
+  }
+
+  function restart() { setBoard(initBoard()); setSelected(null); setMoves([]); setTurn('w'); setStatus(''); }
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+      <div style={{fontFamily:F,fontSize:11,letterSpacing:2,color:'#555'}}>
+        {status || (turn==='w'?'ТВОЙ ХОД':'ХОД КОМПЬЮТЕРА...')}
+      </div>
+      <div style={{border:'1px solid #2a2a2a',display:'inline-block'}}>
+        {board.map((row,r)=>(
+          <div key={r} style={{display:'flex'}}>
+            {row.map((p,c)=>{
+              const isLight=(r+c)%2===0;
+              const isSel=selected?.[0]===r&&selected?.[1]===c;
+              const isMove=moves.some(([mr,mc])=>mr===r&&mc===c);
+              return (
+                <div key={c} onClick={()=>click(r,c)} style={{
+                  width:cell,height:cell,
+                  background:isSel?'#FF9F0A33':isMove?'#00CFFF22':isLight?'#1a1a1a':'#111',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  cursor:'pointer',fontSize:cell*0.55,
+                  boxShadow:isMove?'inset 0 0 0 2px #00CFFF44':isSel?'inset 0 0 0 2px #FF9F0A':undefined,
+                  transition:'background 0.1s',
+                }}>
+                  {p?PIECES[p]:''}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {status && (
+        <button onClick={restart} style={{background:'transparent',border:'1px solid #444',
+          color:'#888',fontFamily:F,fontSize:11,letterSpacing:3,padding:'10px 20px',cursor:'pointer'}}>
+          НОВАЯ ИГРА
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ── ЭКРАН ИГР ─────────────────────────────────
 function GamesScreen({ onBack }) {
@@ -598,7 +770,7 @@ function GamesScreen({ onBack }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
           borderBottom: "1px solid #1a1a1a", paddingBottom: 12 }}>
           <span style={{ fontSize: 11, letterSpacing: 4, color: "#555" }}>
-            // {game === "tetris" ? "ТЕТРИС" : "ЗМЕЙКА"}
+            // {game === "tetris" ? "ТЕТРИС" : game === "snake" ? "ЗМЕЙКА" : "ШАХМАТЫ"}
           </span>
           <button onClick={() => setGame(null)} style={{ background: "transparent",
             border: "1px solid #1e1e1e", color: "#333", fontFamily: F,
@@ -608,6 +780,7 @@ function GamesScreen({ onBack }) {
         </div>
         {game === "tetris" && <TetrisGame />}
         {game === "snake"  && <SnakeGame />}
+        {game === "chess"  && <ChessGame />}
       </div>
     </div>
   );
@@ -624,7 +797,7 @@ function GamesScreen({ onBack }) {
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
           {[
             { key: "tetris", label: "ТЕТРИС", desc: "одна фигура\nодин шанс", color: "#00CFFF" },
-            { key: "snake",  label: "ЗМЕЙКА", desc: "иногда быстрее\nчем хочется", color: "#FF9F0A" },
+            { key: "chess", label: "ШАХМАТЫ", desc: "один король\nодна истина", color: "#888" },
           ].map(p => (
             <button key={p.key} onClick={() => setGame(p.key)} style={{
               width: 180, height: 220, background: "transparent",
