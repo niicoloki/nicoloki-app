@@ -904,7 +904,7 @@ const TRACKS = [
     }
     radioIndexRef.current = index;
     const track = TRACKS[index];
-    radioRef.current = new Audio("/music/nicoloki_base/" + track);
+    radioRef.current = new Audio(track);
     radioRef.current.volume = 0.5;
     radioRef.current.onended = () => {
       const next = (radioIndexRef.current + 1) % TRACKS.length;
