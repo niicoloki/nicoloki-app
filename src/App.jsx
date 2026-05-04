@@ -737,6 +737,7 @@ function ChessGame() {
                   background:isSel?'#FF9F0A33':isMove?'#00CFFF22':isLight?'#1a1a1a':'#111',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   cursor:'pointer',fontSize:cell*0.55,
+                  color: p?.[0]==='w' ? '#e0e0e0' : '#555',
                   boxShadow:isMove?'inset 0 0 0 2px #00CFFF44':isSel?'inset 0 0 0 2px #FF9F0A':undefined,
                   transition:'background 0.1s',
                 }}>
@@ -797,6 +798,7 @@ function GamesScreen({ onBack }) {
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
           {[
             { key: "tetris", label: "ТЕТРИС", desc: "одна фигура\nодин шанс", color: "#00CFFF" },
+            { key: "snake",  label: "ЗМЕЙКА", desc: "иногда быстрее\nчем хочется", color: "#FF9F0A" },
             { key: "chess", label: "ШАХМАТЫ", desc: "один король\nодна истина", color: "#888" },
           ].map(p => (
             <button key={p.key} onClick={() => setGame(p.key)} style={{
