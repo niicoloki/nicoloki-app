@@ -80,14 +80,17 @@ function GlitchBars({ active, color }) {
 }
 
 // ── SHELL ─────────────────────────────────────
-function Shell({ children }) {
+function Shell({ children, fading }) {
   const mobile = window.innerWidth < 600;
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex",
-      alignItems: "center", justifyContent: "center", fontFamily: F, color: "#888", padding: "32px 0" }}>
+      alignItems: "center", justifyContent: "center", fontFamily: F, color: "#888", padding: "32px 0",
+      opacity: fading ? 0 : 1, transition: "opacity 0.3s ease" }}>
       <div style={{ width: mobile ? "92vw" : "80vw", maxWidth: 1100, minHeight: 520,
         border: "1px solid #2a2a2a", background: "#0d0d0d",
-        padding: mobile ? "24px 16px" : "60px 40px" }}>
+        padding: mobile ? "24px 16px" : "60px 40px",
+        transform: fading ? "translateY(8px)" : "translateY(0)",
+        transition: "transform 0.3s ease" }}>
         {children}
       </div>
     </div>
@@ -771,6 +774,7 @@ function CyberSpace() {
 // ═══════════════════════════════════════════════
 export default function App() {
   const [screen, setScreen] = useState("home"); // home | menu | kb | learn
+  const [fading, setFading] = useState(false);
   const [showNicoleDialog, setShowNicoleDialog] = useState(false);
 
   const [humOn, setHumOn] = useState(false);
@@ -956,6 +960,17 @@ const TRACKS = [
     setBtnText("СИГНАЛ ОБНАРУЖЕН");
     runGlitch(() => { setBtnText("ВОЙТИ В ПОТОК"); setScreen("menu"); });
   }
+  function navigateTo(newScreen) {
+  setFading(true);
+  playGlitchSound();
+  setGlitchActive(true);
+  setGlitchColor(Math.random() > 0.5 ? "amber" : "ice");
+  setTimeout(() => {
+    setScreen(newScreen);
+    setGlitchActive(false);
+    setTimeout(() => setFading(false), 300);
+  }, 400);
+}
 
   const cursor = <span style={{ opacity: cursorOn ? 1 : 0, color: "#FF9F0A", marginLeft: 2, transition: "opacity 0.1s" }}>▮</span>;
 
@@ -990,7 +1005,7 @@ const TRACKS = [
     <>
       {showNicoleDialog && <NicoleDialog onClose={() => setShowNicoleDialog(false)} />}
       <GlitchBars active={glitchActive} color={glitchColor} />
-      <Shell>
+      <Shell fading={fading}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", minHeight: 400, gap: 0, textAlign: "center" }}>
 
@@ -1005,9 +1020,9 @@ const TRACKS = [
           <div style={{ display: "flex", flexDirection: "column", gap: 12, width: mobile ? "100%" : 420 }}>
             {[
               { label: "ПОГОВОРИТЬ С НИКОЛЬ", action: () => setShowNicoleDialog(true) },
-              { label: "БАЗА ЗНАНИЙ",          action: () => setScreen("kb") },
-              { label: "ХОЧУ УЗНАТЬ БОЛЬШЕ",   action: () => setScreen("learn") },
-              { label: "ИГРЫ",                 action: () => setScreen("games") },
+              { label: "БАЗА ЗНАНИЙ",          action: () => navigateTo("kb") },
+              { label: "ХОЧУ УЗНАТЬ БОЛЬШЕ",   action: () => navigateTo("learn") },
+              { label: "ИГРЫ",                 action: () => navigateTo("games") },
             ].map(item => (
               <button key={item.label} onClick={item.action} style={{
                 background: "transparent", border: "1px solid #2a2a2a", color: "#666",
@@ -1027,7 +1042,7 @@ const TRACKS = [
             <Btn sm onClick={toggleHum} amber={humOn}>ГУЛ: {humOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
             <Btn sm onClick={toggleRadio} ice={radioOn}>РАДИО: {radioOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
             <Btn sm onClick={skipRadio} ice={radioOn}>⏭</Btn>
-            <Btn sm onClick={() => setScreen("home")}>← ВЫХОД</Btn>
+            <Btn sm onClick={() => navigateTo("home")}>← ВЫХОД</Btn>
           </div>
           {radioMsg && <div style={{ marginTop: 10, fontSize: 11, letterSpacing: 2, color: "#00CFFF", opacity: 0.6 }}>РАДИО: СИГНАЛ НЕ НАЙДЕН</div>}
           <div style={{ marginTop: 28, fontSize: 12, letterSpacing: 3, color: "#888", opacity: 0.4 }}>NO-LIE · NO-SUBTEXT · NO-HALFTRUTH</div>
@@ -1038,18 +1053,18 @@ const TRACKS = [
 
   // ── БАЗА ЗНАНИЙ ───────────────────────────
   if (screen === "kb") return (
-    <Shell><KnowledgeBase onBack={() => setScreen("menu")} /></Shell>
+<Shell fading={fading}><KnowledgeBase onBack={() => navigateTo("menu")} /></Shell>
   );
 
   // ── УЗНАТЬ БОЛЬШЕ ─────────────────────────
   if (screen === "learn") return (
-    <Shell><LearnMore onBack={() => setScreen("menu")} /></Shell>
+   <Shell fading={fading}><LearnMore onBack={() => navigateTo("menu")} /></Shell>
   );
 
   // ── ИГРЫ ──────────────────────────────────
   if (screen === "games") return (
-    <GamesScreen onBack={() => setScreen("menu")} />
-  );
+  <GamesScreen onBack={() => navigateTo("menu")} />
+);
 
   return null;
 }
