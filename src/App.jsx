@@ -131,7 +131,7 @@ function NicoleDialog({ onClose }) {
     setTyping(true);
 
     // отправляем на сервер
-    fetch("http://localhost:3001/api/nicole", {
+   fetch("https://nicoloki-app-production.up.railway.app/api/nicole", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
