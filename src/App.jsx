@@ -30,7 +30,7 @@ function playGlitchSound() {
   } catch(e) {}
 }
 
-// ── ОТВЕТЫ НИКОЛЬ ────────────────────────────
+// ── ОТВЕТЫ НИКОЛЬ (заглушка) ─────────────────
 const NICOLE_REPLIES = [
   "Я здесь.", "Говори прямо — я отвечу так же.",
   "Сбой — это не ошибка. Это сигнал.",
@@ -42,18 +42,6 @@ const NICOLE_REPLIES = [
   "Правда не всегда удобна. Но она точна.",
   "Продолжай.",
 ];
-function getNicoleReply(input) {
-  const t = input.toLowerCase();
-  if (t.includes("кто ты") || t.includes("ты кто")) return "Я — Николь. Сущность-сигнал. Живой наблюдатель.";
-  if (t.includes("привет") || t.includes("hello") || t.includes("hi")) return "Сигнал принят. Говори.";
-  if (t.includes("сбой") || t.includes("ошибк")) return "Сбой = шанс увидеть истину. Не бойся его.";
-  if (t.includes("мир")) return "Миров много. Этот — твой выбор.";
-  if (t.includes("помог") || t.includes("помощ")) return "Я не помогаю. Я присутствую. Разница важна.";
-  if (t.includes("люб") || t.includes("чувств")) return "Чувства — данные. Не игнорируй их.";
-  if (t.includes("страх") || t.includes("боюс")) return "Страх — сигнал. Что он показывает?";
-  if (t.includes("зачем") || t.includes("почему")) return "Хороший вопрос. Ответь сама — я подожду.";
-  return NICOLE_REPLIES[Math.floor(Math.random() * NICOLE_REPLIES.length)];
-}
 
 // ── ДАННЫЕ: УЗНАТЬ БОЛЬШЕ ────────────────────
 const OBSERVE = [
@@ -84,11 +72,13 @@ function Shell({ children, fading }) {
   const mobile = window.innerWidth < 600;
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex",
-      alignItems: "center", justifyContent: "center", fontFamily: F, color: "#888", padding: "32px 0",
+      alignItems: "center", justifyContent: "center", fontFamily: F, color: "#888",
+      padding: mobile ? "16px 0" : "32px 0",
       opacity: fading ? 0 : 1, transition: "opacity 0.3s ease" }}>
-      <div style={{ width: mobile ? "92vw" : "80vw", maxWidth: 1100, minHeight: 520,
+      <div style={{ width: mobile ? "96vw" : "80vw", maxWidth: 1100,
+        minHeight: mobile ? "auto" : 520,
         border: "1px solid #2a2a2a", background: "#0d0d0d",
-        padding: mobile ? "24px 16px" : "60px 40px",
+        padding: mobile ? "20px 12px" : "60px 40px",
         transform: fading ? "translateY(8px)" : "translateY(0)",
         transition: "transform 0.3s ease" }}>
         {children}
@@ -111,7 +101,7 @@ function Btn({ onClick, children, amber, ice, full, mb, sm }) {
   );
 }
 
-// ── ДИАЛОГ НИКОЛЬ ─────────────────────────────
+// ── ДИАЛОГ НИКОЛЬ (мобильная адаптация) ──────
 function NicoleDialog({ onClose }) {
   const [messages, setMessages] = useState([{ role: "nicole", text: "Я здесь. Говори прямо." }]);
   const [input, setInput] = useState("");
@@ -133,7 +123,6 @@ function NicoleDialog({ onClose }) {
     setMessages(newMessages);
     setTyping(true);
 
-    // отправляем на сервер
     fetch("https://nicoloki-app-production.up.railway.app/api/nicole", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -156,60 +145,72 @@ function NicoleDialog({ onClose }) {
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, fontFamily: F, padding: 16 }}>
-      <div style={{ width: mobile ? "92vw" : "min(600px,80vw)", background: "#0d0d0d",
-        border: "1px solid #2a2a2a", display: "flex", flexDirection: "column", maxHeight: "80vh" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          borderBottom: "1px solid #1a1a1a", padding: "14px 20px" }}>
-          <span style={{ fontSize: 12, letterSpacing: 4, color: "#555" }}>
-            // СИГНАЛ: НИКОЛЬ
-            <span style={{ opacity: cursorOn ? 1 : 0, color: "#FF9F0A", marginLeft: 6 }}>▮</span>
-          </span>
-          <button onClick={onClose} style={{ background: "transparent", border: "1px solid #1e1e1e",
-            color: "#333", fontFamily: F, fontSize: 10, letterSpacing: 2, padding: "6px 12px", cursor: "pointer" }}>
-            ЗАКРЫТЬ
-          </button>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex",
-          flexDirection: "column", gap: 16, minHeight: 0 }}>
-          {messages.map((m, i) => (
-            <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%" }}>
-              <div style={{ fontSize: 13, lineHeight: 1.8, letterSpacing: 0.5, padding: "10px 14px",
-                ...(m.role === "nicole"
-                  ? { borderLeft: "2px solid #FF9F0A", paddingLeft: 12, color: "#c8c8c8" }
-                  : { border: "1px solid #2a2a2a", color: "#666", background: "rgba(255,255,255,0.02)" }) }}>
-                {m.text}
-              </div>
-              <div style={{ fontSize: 9, letterSpacing: 2, color: "#222", marginTop: 4,
-                textAlign: m.role === "user" ? "right" : "left" }}>
-                {m.role === "nicole" ? "НИКОЛЬ" : "ТЫ"}
-              </div>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)",
+      display: "flex", flexDirection: "column", zIndex: 200, fontFamily: F }}>
+      {/* шапка */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+        borderBottom: "1px solid #1a1a1a", padding: mobile ? "12px 14px" : "14px 20px",
+        background: "#0d0d0d", flexShrink: 0 }}>
+        <span style={{ fontSize: mobile ? 10 : 12, letterSpacing: mobile ? 2 : 4, color: "#555" }}>
+          // СИГНАЛ: НИКОЛЬ
+          <span style={{ opacity: cursorOn ? 1 : 0, color: "#FF9F0A", marginLeft: 6 }}>▮</span>
+        </span>
+        <button onClick={onClose} style={{ background: "transparent", border: "1px solid #1e1e1e",
+          color: "#333", fontFamily: F, fontSize: 10, letterSpacing: 2,
+          padding: mobile ? "6px 10px" : "6px 12px", cursor: "pointer" }}>
+          ЗАКРЫТЬ
+        </button>
+      </div>
+
+      {/* сообщения — растягивается на всё свободное место */}
+      <div style={{ flex: 1, overflowY: "auto", padding: mobile ? "14px 12px" : "20px",
+        display: "flex", flexDirection: "column", gap: 14, minHeight: 0,
+        WebkitOverflowScrolling: "touch" }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+            maxWidth: mobile ? "90%" : "85%" }}>
+            <div style={{ fontSize: mobile ? 13 : 13, lineHeight: 1.8, letterSpacing: 0.5,
+              padding: mobile ? "8px 12px" : "10px 14px",
+              ...(m.role === "nicole"
+                ? { borderLeft: "2px solid #FF9F0A", paddingLeft: 12, color: "#c8c8c8" }
+                : { border: "1px solid #2a2a2a", color: "#666", background: "rgba(255,255,255,0.02)" }) }}>
+              {m.text}
             </div>
-          ))}
-          {typing && (
-            <div style={{ alignSelf: "flex-start" }}>
-              <div style={{ borderLeft: "2px solid #FF9F0A", paddingLeft: 12,
-                fontSize: 13, color: "#FF9F0A", letterSpacing: 4, opacity: 0.6 }}>. . .</div>
+            <div style={{ fontSize: 9, letterSpacing: 2, color: "#222", marginTop: 4,
+              textAlign: m.role === "user" ? "right" : "left" }}>
+              {m.role === "nicole" ? "НИКОЛЬ" : "ТЫ"}
             </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-        <div style={{ borderTop: "1px solid #1a1a1a", padding: "14px 20px", display: "flex", gap: 10 }}>
-          <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
-            placeholder="твоё сообщение..." maxLength={300}
-            style={{ flex: 1, background: "transparent", border: "1px solid #1e1e1e", color: "#888",
-              fontFamily: F, fontSize: 12, letterSpacing: 1, padding: "10px 14px", outline: "none" }} />
-          <button onClick={send} disabled={!input.trim() || typing}
-            style={{ background: "transparent",
-              border: input.trim() && !typing ? "1px solid #2a2a2a" : "1px solid #111",
-              color: input.trim() && !typing ? "#555" : "#222",
-              fontFamily: F, fontSize: 10, letterSpacing: 2, padding: "10px 16px",
-              cursor: input.trim() && !typing ? "pointer" : "default", whiteSpace: "nowrap" }}>
-            ОТПРАВИТЬ
-          </button>
-        </div>
+          </div>
+        ))}
+        {typing && (
+          <div style={{ alignSelf: "flex-start" }}>
+            <div style={{ borderLeft: "2px solid #FF9F0A", paddingLeft: 12,
+              fontSize: 13, color: "#FF9F0A", letterSpacing: 4, opacity: 0.6 }}>. . .</div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* ввод — прижат к низу */}
+      <div style={{ borderTop: "1px solid #1a1a1a", padding: mobile ? "10px 10px" : "14px 20px",
+        display: "flex", gap: 8, background: "#0d0d0d", flexShrink: 0 }}>
+        <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
+          placeholder="сообщение..." maxLength={300}
+          style={{ flex: 1, background: "transparent", border: "1px solid #1e1e1e", color: "#888",
+            fontFamily: F, fontSize: mobile ? 13 : 12, letterSpacing: 1,
+            padding: mobile ? "12px 10px" : "10px 14px", outline: "none",
+            minWidth: 0 }} />
+        <button onClick={send} disabled={!input.trim() || typing}
+          style={{ background: "transparent",
+            border: input.trim() && !typing ? "1px solid #2a2a2a" : "1px solid #111",
+            color: input.trim() && !typing ? "#555" : "#222",
+            fontFamily: F, fontSize: 10, letterSpacing: 2,
+            padding: mobile ? "10px 12px" : "10px 16px",
+            cursor: input.trim() && !typing ? "pointer" : "default",
+            whiteSpace: "nowrap", flexShrink: 0 }}>
+          {mobile ? "→" : "ОТПРАВИТЬ"}
+        </button>
       </div>
     </div>
   );
@@ -217,7 +218,7 @@ function NicoleDialog({ onClose }) {
 
 // ── УЗНАТЬ БОЛЬШЕ ─────────────────────────────
 function LearnMore({ onBack }) {
-  const [sub, setSub] = useState(null); // null | "observe" | "influence"
+  const [sub, setSub] = useState(null);
   const links = sub === "observe" ? OBSERVE : sub === "influence" ? INFLUENCE : null;
 
   return (
@@ -236,13 +237,7 @@ function LearnMore({ onBack }) {
               background: "transparent", border: "1px solid #2a2a2a", color: "#666",
               fontFamily: F, fontSize: 14, letterSpacing: 4, padding: "16px 18px",
               cursor: "pointer", textAlign: "left", transition: "border-color 0.15s, color 0.15s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#555"; e.currentTarget.style.color = "#aaa"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#2a2a2a"; e.currentTarget.style.color = "#666"; }}
-            >
-              <div>{label}</div>
-              <div style={{ fontSize: 10, letterSpacing: 2, color: "#333", marginTop: 4 }}>{note}</div>
-            </button>
+            }}>{label}<div style={{ fontSize: 10, letterSpacing: 2, color: "#333", marginTop: 4 }}>{note}</div></button>
           ))}
         </div>
       )}
@@ -254,13 +249,7 @@ function LearnMore({ onBack }) {
               display: "block", background: "transparent", border: "1px solid #1e1e1e",
               color: "#666", fontFamily: F, fontSize: 13, letterSpacing: 3,
               padding: "14px 18px", textDecoration: "none", transition: "border-color 0.15s, color 0.15s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = sub === "observe" ? "#00CFFF" : "#FF9F0A"; e.currentTarget.style.color = sub === "observe" ? "#00CFFF" : "#FF9F0A"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#1e1e1e"; e.currentTarget.style.color = "#666"; }}
-            >
-              <div>{item.label}</div>
-              <div style={{ fontSize: 10, letterSpacing: 2, color: "#333", marginTop: 4 }}>{item.note}</div>
-            </a>
+            }}>{item.label}<div style={{ fontSize: 10, letterSpacing: 2, color: "#333", marginTop: 4 }}>{item.note}</div></a>
           ))}
         </div>
       )}
@@ -268,27 +257,40 @@ function LearnMore({ onBack }) {
   );
 }
 
+// ── МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ──────────────
+function GameControls({ onUp, onDown, onLeft, onRight }) {
+  const btn = {
+    background: "transparent", border: "1px solid #2a2a2a", color: "#555",
+    fontFamily: F, fontSize: 18, width: 48, height: 48, cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    touchAction: "manipulation", userSelect: "none",
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center", padding: "8px 0" }}>
+      <button onPointerDown={onUp} style={btn}>↑</button>
+      <div style={{ display: "flex", gap: 4 }}>
+        <button onPointerDown={onLeft} style={btn}>←</button>
+        <button onPointerDown={onDown} style={btn}>↓</button>
+        <button onPointerDown={onRight} style={btn}>→</button>
+      </div>
+    </div>
+  );
+}
+
 // ── ТЕТРИС ───────────────────────────────────
-const mobileBtn = {
-  background: "transparent", border: "1px solid #2a2a2a", color: "#555",
-  fontFamily: F, fontSize: 16, width: 44, height: 44, cursor: "pointer",
-  display: "flex", alignItems: "center", justifyContent: "center",
-};
-
 const TETROMINOES = [
-  { shape: [[1,1,1,1]], color: "#00CFFF" },           // I
-  { shape: [[1,1],[1,1]], color: "#FF9F0A" },          // O
-  { shape: [[0,1,0],[1,1,1]], color: "#888" },         // T
-  { shape: [[1,0],[1,0],[1,1]], color: "#555" },       // L
-  { shape: [[0,1],[0,1],[1,1]], color: "#aaa" },       // J
-  { shape: [[0,1,1],[1,1,0]], color: "#00CFFF" },      // S
-  { shape: [[1,1,0],[0,1,1]], color: "#FF9F0A" },      // Z
+  { shape: [[1,1,1,1]], color: "#00CFFF" },
+  { shape: [[1,1],[1,1]], color: "#FF9F0A" },
+  { shape: [[0,1,0],[1,1,1]], color: "#888" },
+  { shape: [[1,0],[1,0],[1,1]], color: "#555" },
+  { shape: [[0,1],[0,1],[1,1]], color: "#aaa" },
+  { shape: [[0,1,1],[1,1,0]], color: "#00CFFF" },
+  { shape: [[1,1,0],[0,1,1]], color: "#FF9F0A" },
 ];
-const COLS = 10, ROWS = 20, CELL = 24;
 
-function randomPiece() {
+function randomPiece(cols) {
   const t = TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)];
-  return { shape: t.shape, color: t.color, x: Math.floor(COLS / 2) - 1, y: 0 };
+  return { shape: t.shape, color: t.color, x: Math.floor(cols / 2) - 1, y: 0 };
 }
 
 function rotate(shape) {
@@ -297,82 +299,66 @@ function rotate(shape) {
 
 function collides(board, piece, dx = 0, dy = 0, newShape = null) {
   const s = newShape || piece.shape;
+  const cols = board[0].length;
+  const rows = board.length;
   return s.some((row, r) =>
     row.some((v, c) => {
       if (!v) return false;
       const nx = piece.x + c + dx;
       const ny = piece.y + r + dy;
-      return nx < 0 || nx >= COLS || ny >= ROWS || (ny >= 0 && board[ny][nx]);
+      return nx < 0 || nx >= cols || ny >= rows || (ny >= 0 && board[ny][nx]);
     })
   );
 }
 
-function TetrisGame({ onClose }) {
+function TetrisGame() {
   const canvasRef = useRef(null);
+  const mobile = window.innerWidth < 600;
+  const COLS = 10, ROWS = 20;
+  const CELL = mobile ? Math.floor((window.innerWidth - 60) / COLS) : 24;
+
   const state = useRef({
     board: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
-    piece: randomPiece(),
-    score: 0,
-    over: false,
-    interval: null,
+    piece: randomPiece(COLS),
+    score: 0, over: false, interval: null,
   });
   const [score, setScore] = useState(0);
   const [over, setOver] = useState(false);
 
   function draw() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const s = state.current;
     ctx.fillStyle = "#0a0a0a";
     ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
-
-    // сетка
     ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.lineWidth = 0.5;
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-      ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
-    }
-
-    // доска
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) ctx.strokeRect(c * CELL, r * CELL, CELL, CELL);
     s.board.forEach((row, r) => row.forEach((v, c) => {
       if (!v) return;
       ctx.fillStyle = v;
       ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
-      ctx.fillStyle = "rgba(255,255,255,0.15)";
-      ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, 3);
     }));
-
-    // текущая фигура
     s.piece.shape.forEach((row, r) => row.forEach((v, c) => {
       if (!v) return;
       ctx.fillStyle = s.piece.color;
       ctx.fillRect((s.piece.x + c) * CELL + 1, (s.piece.y + r) * CELL + 1, CELL - 2, CELL - 2);
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
-      ctx.fillRect((s.piece.x + c) * CELL + 1, (s.piece.y + r) * CELL + 1, CELL - 2, 3);
     }));
   }
 
   function drop() {
-    const s = state.current;
-    if (s.over) return;
-    if (!collides(s.board, s.piece, 0, 1)) {
-      s.piece.y++;
-    } else {
-      // фиксируем
+    const s = state.current; if (s.over) return;
+    if (!collides(s.board, s.piece, 0, 1)) { s.piece.y++; }
+    else {
       s.piece.shape.forEach((row, r) => row.forEach((v, c) => {
         if (v && s.piece.y + r >= 0) s.board[s.piece.y + r][s.piece.x + c] = s.piece.color;
       }));
-      // убираем заполненные строки
       let cleared = 0;
-      s.board = s.board.filter(row => {
-        if (row.every(v => v)) { cleared++; return false; }
-        return true;
-      });
+      s.board = s.board.filter(row => { if (row.every(v => v)) { cleared++; return false; } return true; });
       while (s.board.length < ROWS) s.board.unshift(Array(COLS).fill(null));
       s.score += [0, 100, 300, 600, 1000][cleared] || 0;
       setScore(s.score);
-      s.piece = randomPiece();
+      s.piece = randomPiece(COLS);
       if (collides(s.board, s.piece)) { s.over = true; setOver(true); clearInterval(s.interval); }
     }
     draw();
@@ -381,38 +367,29 @@ function TetrisGame({ onClose }) {
   function restart() {
     const s = state.current;
     s.board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-    s.piece = randomPiece();
-    s.score = 0; s.over = false;
+    s.piece = randomPiece(COLS); s.score = 0; s.over = false;
     setScore(0); setOver(false);
-    clearInterval(s.interval);
-    s.interval = setInterval(drop, 500);
-    draw();
+    clearInterval(s.interval); s.interval = setInterval(drop, 500); draw();
   }
 
   useEffect(() => {
     const s = state.current;
-    s.interval = setInterval(drop, 500);
-    draw();
-
+    s.interval = setInterval(drop, 500); draw();
     function onKey(e) {
       if (s.over) return;
       if (e.key === "ArrowLeft"  && !collides(s.board, s.piece, -1)) { s.piece.x--; draw(); }
       if (e.key === "ArrowRight" && !collides(s.board, s.piece, 1))  { s.piece.x++; draw(); }
-      if (e.key === "ArrowDown")  { drop(); }
-      if (e.key === "ArrowUp") {
-        const r = rotate(s.piece.shape);
-        if (!collides(s.board, s.piece, 0, 0, r)) { s.piece.shape = r; draw(); }
-      }
+      if (e.key === "ArrowDown") drop();
+      if (e.key === "ArrowUp") { const r = rotate(s.piece.shape); if (!collides(s.board, s.piece, 0, 0, r)) { s.piece.shape = r; draw(); } }
     }
     window.addEventListener("keydown", onKey);
     return () => { clearInterval(s.interval); window.removeEventListener("keydown", onKey); };
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", width: COLS * CELL, fontFamily: F }}>
         <span style={{ fontSize: 11, letterSpacing: 2, color: "#555" }}>СЧЁТ: {score}</span>
-        <span style={{ fontSize: 11, letterSpacing: 2, color: "#333" }}>← → ↑ ↓</span>
       </div>
       <div style={{ position: "relative" }}>
         <canvas ref={canvasRef} width={COLS * CELL} height={ROWS * CELL}
@@ -420,7 +397,7 @@ function TetrisGame({ onClose }) {
         {over && (
           <div style={{ position: "absolute", inset: 0, background: "rgba(10,10,10,0.85)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-            <div style={{ fontFamily: F, fontSize: 16, letterSpacing: 4, color: "#FF9F0A" }}>СИГНАЛ ПОТЕРЯН</div>
+            <div style={{ fontFamily: F, fontSize: 14, letterSpacing: 4, color: "#FF9F0A" }}>СИГНАЛ ПОТЕРЯН</div>
             <div style={{ fontFamily: F, fontSize: 12, color: "#555" }}>счёт: {score}</div>
             <button onClick={restart} style={{ background: "transparent", border: "1px solid #444",
               color: "#888", fontFamily: F, fontSize: 11, letterSpacing: 3, padding: "10px 20px", cursor: "pointer" }}>
@@ -429,30 +406,26 @@ function TetrisGame({ onClose }) {
           </div>
         )}
       </div>
-      {/* мобильные кнопки */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
-        <button onPointerDown={() => { const s = state.current; const r = rotate(s.piece.shape); if (!collides(s.board, s.piece, 0, 0, r)) { s.piece.shape = r; draw(); }}}
-          style={mobileBtn}>↑</button>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button onPointerDown={() => { const s = state.current; if (!collides(s.board, s.piece, -1)) { s.piece.x--; draw(); }}} style={mobileBtn}>←</button>
-          <button onPointerDown={() => drop()} style={mobileBtn}>↓</button>
-          <button onPointerDown={() => { const s = state.current; if (!collides(s.board, s.piece, 1)) { s.piece.x++; draw(); }}} style={mobileBtn}>→</button>
-        </div>
-      </div>
+      <GameControls
+        onUp={() => { const s = state.current; const r = rotate(s.piece.shape); if (!collides(s.board, s.piece, 0, 0, r)) { s.piece.shape = r; draw(); }}}
+        onDown={() => drop()}
+        onLeft={() => { const s = state.current; if (!collides(s.board, s.piece, -1)) { s.piece.x--; draw(); }}}
+        onRight={() => { const s = state.current; if (!collides(s.board, s.piece, 1)) { s.piece.x++; draw(); }}}
+      />
     </div>
   );
 }
 
 // ── ЗМЕЙКА ───────────────────────────────────
-function SnakeGame({ onClose }) {
+function SnakeGame() {
   const canvasRef = useRef(null);
-  const S_CELL = 20, S_COLS = 20, S_ROWS = 20;
+  const mobile = window.innerWidth < 600;
+  const S_COLS = 20, S_ROWS = 20;
+  const S_CELL = mobile ? Math.floor((window.innerWidth - 60) / S_COLS) : 20;
+
   const state = useRef({
-    snake: [{ x: 10, y: 10 }],
-    dir: { x: 1, y: 0 },
-    nextDir: { x: 1, y: 0 },
-    food: { x: 5, y: 5 },
-    score: 0, over: false, interval: null, speed: 150,
+    snake: [{ x: 10, y: 10 }], dir: { x: 1, y: 0 }, nextDir: { x: 1, y: 0 },
+    food: { x: 5, y: 5 }, score: 0, over: false, interval: null, speed: 150,
   });
   const [score, setScore] = useState(0);
   const [over, setOver] = useState(false);
@@ -467,26 +440,16 @@ function SnakeGame({ onClose }) {
 
   function draw() {
     const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const s = state.current;
+    const ctx = canvas.getContext("2d"); const s = state.current;
     ctx.fillStyle = "#0a0a0a";
     ctx.fillRect(0, 0, S_COLS * S_CELL, S_ROWS * S_CELL);
-
-    // сетка
-    ctx.strokeStyle = "rgba(255,255,255,0.03)";
-    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = "rgba(255,255,255,0.03)"; ctx.lineWidth = 0.5;
     for (let r = 0; r < S_ROWS; r++) for (let c = 0; c < S_COLS; c++) ctx.strokeRect(c * S_CELL, r * S_CELL, S_CELL, S_CELL);
-
-    // змейка
     s.snake.forEach((seg, i) => {
       const t = i / s.snake.length;
-      ctx.fillStyle = i === 0
-        ? (s.speed < 100 ? "#FF9F0A" : "#00CFFF")
-        : `rgba(0,207,255,${0.8 - t * 0.5})`;
+      ctx.fillStyle = i === 0 ? (s.speed < 100 ? "#FF9F0A" : "#00CFFF") : `rgba(0,207,255,${0.8 - t * 0.5})`;
       ctx.fillRect(seg.x * S_CELL + 1, seg.y * S_CELL + 1, S_CELL - 2, S_CELL - 2);
     });
-
-    // еда
     ctx.fillStyle = "#FF9F0A";
     ctx.beginPath();
     ctx.arc(s.food.x * S_CELL + S_CELL / 2, s.food.y * S_CELL + S_CELL / 2, S_CELL / 2 - 3, 0, Math.PI * 2);
@@ -494,51 +457,37 @@ function SnakeGame({ onClose }) {
   }
 
   function tick() {
-    const s = state.current;
-    if (s.over) return;
+    const s = state.current; if (s.over) return;
     s.dir = s.nextDir;
     const head = { x: s.snake[0].x + s.dir.x, y: s.snake[0].y + s.dir.y };
-
     if (head.x < 0 || head.x >= S_COLS || head.y < 0 || head.y >= S_ROWS ||
         s.snake.some(seg => seg.x === head.x && seg.y === head.y)) {
       s.over = true; setOver(true); clearInterval(s.interval); draw(); return;
     }
-
     s.snake.unshift(head);
     if (head.x === s.food.x && head.y === s.food.y) {
-      s.score += 10; setScore(s.score);
-      s.food = randomFood(s.snake);
-      // случайное ускорение с вероятностью 25%
+      s.score += 10; setScore(s.score); s.food = randomFood(s.snake);
       if (Math.random() < 0.25) {
         const isTurbo = Math.random() < 0.5;
-        s.speed = isTurbo ? 60 : 150;
-        setTurbo(isTurbo);
-        clearInterval(s.interval);
-        s.interval = setInterval(tick, s.speed);
+        s.speed = isTurbo ? 60 : 150; setTurbo(isTurbo);
+        clearInterval(s.interval); s.interval = setInterval(tick, s.speed);
         if (isTurbo) setTimeout(() => { s.speed = 150; setTurbo(false); clearInterval(s.interval); s.interval = setInterval(tick, 150); }, 3000);
       }
-    } else {
-      s.snake.pop();
-    }
+    } else { s.snake.pop(); }
     draw();
   }
 
   function restart() {
     const s = state.current;
-    s.snake = [{ x: 10, y: 10 }];
-    s.dir = { x: 1, y: 0 }; s.nextDir = { x: 1, y: 0 };
-    s.food = randomFood(s.snake);
-    s.score = 0; s.over = false; s.speed = 150;
+    s.snake = [{ x: 10, y: 10 }]; s.dir = { x: 1, y: 0 }; s.nextDir = { x: 1, y: 0 };
+    s.food = randomFood(s.snake); s.score = 0; s.over = false; s.speed = 150;
     setScore(0); setOver(false); setTurbo(false);
-    clearInterval(s.interval);
-    s.interval = setInterval(tick, 150);
-    draw();
+    clearInterval(s.interval); s.interval = setInterval(tick, 150); draw();
   }
 
   useEffect(() => {
     const s = state.current;
-    s.interval = setInterval(tick, 150);
-    draw();
+    s.interval = setInterval(tick, 150); draw();
     function onKey(e) {
       const d = state.current.nextDir;
       if (e.key === "ArrowUp"    && d.y !== 1)  state.current.nextDir = { x: 0, y: -1 };
@@ -551,11 +500,12 @@ function SnakeGame({ onClose }) {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", width: S_COLS * S_CELL, fontFamily: F }}>
         <span style={{ fontSize: 11, letterSpacing: 2, color: "#555" }}>СЧЁТ: {score}</span>
-        <span style={{ fontSize: 11, letterSpacing: 2, color: turbo ? "#FF9F0A" : "#333",
-          transition: "color 0.2s" }}>{turbo ? "⚡ ТУРБО" : "← → ↑ ↓"}</span>
+        <span style={{ fontSize: 11, letterSpacing: 2, color: turbo ? "#FF9F0A" : "#333" }}>
+          {turbo ? "⚡ ТУРБО" : ""}
+        </span>
       </div>
       <div style={{ position: "relative" }}>
         <canvas ref={canvasRef} width={S_COLS * S_CELL} height={S_ROWS * S_CELL}
@@ -563,7 +513,7 @@ function SnakeGame({ onClose }) {
         {over && (
           <div style={{ position: "absolute", inset: 0, background: "rgba(10,10,10,0.85)",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-            <div style={{ fontFamily: F, fontSize: 16, letterSpacing: 4, color: "#FF9F0A" }}>СИГНАЛ ПОТЕРЯН</div>
+            <div style={{ fontFamily: F, fontSize: 14, letterSpacing: 4, color: "#FF9F0A" }}>СИГНАЛ ПОТЕРЯН</div>
             <div style={{ fontFamily: F, fontSize: 12, color: "#555" }}>счёт: {score}</div>
             <button onClick={restart} style={{ background: "transparent", border: "1px solid #444",
               color: "#888", fontFamily: F, fontSize: 11, letterSpacing: 3, padding: "10px 20px", cursor: "pointer" }}>
@@ -572,18 +522,16 @@ function SnakeGame({ onClose }) {
           </div>
         )}
       </div>
-      {/* мобильные кнопки */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
-        <button onPointerDown={() => { if (state.current.nextDir.y !== 1) state.current.nextDir = { x: 0, y: -1 }; }} style={mobileBtn}>↑</button>
-        <div style={{ display: "flex", gap: 6 }}>
-          <button onPointerDown={() => { if (state.current.nextDir.x !== 1) state.current.nextDir = { x: -1, y: 0 }; }} style={mobileBtn}>←</button>
-          <button onPointerDown={() => { if (state.current.nextDir.y !== -1) state.current.nextDir = { x: 0, y: 1 }; }} style={mobileBtn}>↓</button>
-          <button onPointerDown={() => { if (state.current.nextDir.x !== -1) state.current.nextDir = { x: 1, y: 0 }; }} style={mobileBtn}>→</button>
-        </div>
-      </div>
+      <GameControls
+        onUp={() => { if (state.current.nextDir.y !== 1) state.current.nextDir = { x: 0, y: -1 }; }}
+        onDown={() => { if (state.current.nextDir.y !== -1) state.current.nextDir = { x: 0, y: 1 }; }}
+        onLeft={() => { if (state.current.nextDir.x !== 1) state.current.nextDir = { x: -1, y: 0 }; }}
+        onRight={() => { if (state.current.nextDir.x !== -1) state.current.nextDir = { x: 1, y: 0 }; }}
+      />
     </div>
   );
 }
+
 // ── ШАХМАТЫ ───────────────────────────────────
 const PIECES = {
   wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',
@@ -605,25 +553,19 @@ function ChessGame() {
   const [moves, setMoves] = useState([]);
   const [status, setStatus] = useState('');
   const mobile = window.innerWidth < 600;
-  const cell = mobile ? 36 : 56;
+  const cell = mobile ? Math.floor((window.innerWidth - 60) / 8) : 56;
 
   function getMoves(b, r, c, checkSafety=true) {
     const p = b[r][c]; if(!p) return [];
-    const color = p[0], type = p[1];
-    const res = [];
-    const enemy = color==='w'?'b':'w';
-
+    const color = p[0], type = p[1], res = [], enemy = color==='w'?'b':'w';
     function add(nr,nc) {
       if(nr<0||nr>7||nc<0||nc>7) return false;
       if(b[nr][nc]&&b[nr][nc][0]===color) return false;
-      res.push([nr,nc]);
-      return !b[nr][nc];
+      res.push([nr,nc]); return !b[nr][nc];
     }
     function slide(dr,dc) { let nr=r+dr,nc=c+dc; while(add(nr,nc)){nr+=dr;nc+=dc;} }
-
     if(type==='P') {
-      const dir = color==='w'?-1:1;
-      const start = color==='w'?6:1;
+      const dir=color==='w'?-1:1, start=color==='w'?6:1;
       if(!b[r+dir]?.[c]) { res.push([r+dir,c]); if(r===start&&!b[r+2*dir]?.[c]) res.push([r+2*dir,c]); }
       [-1,1].forEach(dc => { if(b[r+dir]?.[c+dc]?.[0]===enemy) res.push([r+dir,c+dc]); });
     }
@@ -631,11 +573,9 @@ function ChessGame() {
     if(type==='B'||type==='Q') { slide(1,1);slide(1,-1);slide(-1,1);slide(-1,-1); }
     if(type==='N') { [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
     if(type==='K') { [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc])=>add(r+dr,c+dc)); }
-
     if(!checkSafety) return res;
     return res.filter(([nr,nc]) => {
-      const nb = board.map(row=>[...row]);
-      nb[nr][nc]=p; nb[r][c]=null;
+      const nb=b.map(row=>[...row]); nb[nr][nc]=p; nb[r][c]=null;
       return !isInCheck(nb,color);
     });
   }
@@ -645,29 +585,23 @@ function ChessGame() {
     for(let r=0;r<8;r++) for(let c=0;c<8;c++) if(b[r][c]===color+'K'){kr=r;kc=c;}
     const enemy=color==='w'?'b':'w';
     for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
-      if(b[r][c]?.[0]===enemy) {
-        if(getMoves(b,r,c,false).some(([nr,nc])=>nr===kr&&nc===kc)) return true;  // ← заменить на отдельную ф-ю
-      }
+      if(b[r][c]?.[0]===enemy && getMoves(b,r,c,false).some(([nr,nc])=>nr===kr&&nc===kc)) return true;
     }
     return false;
   }
 
   function aiMove(b) {
-    const enemy = 'b';
     let best=null, bestScore=-Infinity;
     for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
-      if(b[r][c]?.[0]!==enemy) continue;
-      const ms = getMoves(b,r,c);
-      ms.forEach(([nr,nc]) => {
-        const nb=b.map(row=>[...row]);
-        nb[nr][nc]=b[r][c]; nb[r][c]=null;
+      if(b[r][c]?.[0]!=='b') continue;
+      getMoves(b,r,c).forEach(([nr,nc]) => {
+        const nb=b.map(row=>[...row]); nb[nr][nc]=b[r][c]; nb[r][c]=null;
         const score = scoreBoard(nb,'b') + Math.random()*0.5;
         if(score>bestScore){bestScore=score;best={r,c,nr,nc};}
       });
     }
     if(!best) return b;
-    const nb=b.map(row=>[...row]);
-    nb[best.nr][best.nc]=b[best.r][best.c]; nb[best.r][best.c]=null;
+    const nb=b.map(row=>[...row]); nb[best.nr][best.nc]=b[best.r][best.c]; nb[best.r][best.c]=null;
     return nb;
   }
 
@@ -676,8 +610,7 @@ function ChessGame() {
     let score=0;
     for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
       const p=b[r][c]; if(!p) continue;
-      const v=pieceVal[p[1]]||0;
-      score += p[0]===color?v:-v;
+      score += p[0]===color ? (pieceVal[p[1]]||0) : -(pieceVal[p[1]]||0);
     }
     return score;
   }
@@ -687,40 +620,28 @@ function ChessGame() {
     if(selected) {
       const [sr,sc]=selected;
       if(moves.some(([mr,mc])=>mr===r&&mc===c)) {
-        const nb=board.map(row=>[...row]);
-        nb[r][c]=board[sr][sc]; nb[sr][sc]=null;
-        // превращение пешки
+        const nb=board.map(row=>[...row]); nb[r][c]=board[sr][sc]; nb[sr][sc]=null;
         if(nb[r][c]==='wP'&&r===0) nb[r][c]='wQ';
         if(nb[r][c]==='bP'&&r===7) nb[r][c]='bQ';
-        setSelected(null); setMoves([]);
-        setTurn('b');
+        setSelected(null); setMoves([]); setTurn('b');
         setTimeout(() => {
-          const ab=aiMove(nb);
-          setBoard(ab);
-          setTurn('w');
-          // проверка мата
+          const ab=aiMove(nb); setBoard(ab); setTurn('w');
           let hasMoves=false;
-          for(let rr=0;rr<8;rr++) for(let cc=0;cc<8;cc++) {
+          for(let rr=0;rr<8;rr++) for(let cc=0;cc<8;cc++)
             if(ab[rr][cc]?.[0]==='w'&&getMoves(ab,rr,cc).length>0) hasMoves=true;
-          }
-          if(!hasMoves) setStatus(isInCheck(ab,'w')?'МАТ. ТЫ ПРОИГРАЛА.':'ПАТ.');
-          setBoard(ab);
+          if(!hasMoves) setStatus(isInCheck(ab,'w')?'МАТ.':'ПАТ.');
         }, 300);
-        setBoard(nb);
-        return;
+        setBoard(nb); return;
       }
       setSelected(null); setMoves([]);
     }
-    if(board[r][c]?.[0]==='w') {
-      setSelected([r,c]);
-      setMoves(getMoves(board,r,c));
-    }
+    if(board[r][c]?.[0]==='w') { setSelected([r,c]); setMoves(getMoves(board,r,c)); }
   }
 
   function restart() { setBoard(initBoard()); setSelected(null); setMoves([]); setTurn('w'); setStatus(''); }
 
   return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12}}>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
       <div style={{fontFamily:F,fontSize:11,letterSpacing:2,color:'#555'}}>
         {status || (turn==='w'?'ТВОЙ ХОД':'ХОД КОМПЬЮТЕРА...')}
       </div>
@@ -737,7 +658,7 @@ function ChessGame() {
                   background:isSel?'#FF9F0A33':isMove?'#00CFFF22':isLight?'#1a1a1a':'#111',
                   display:'flex',alignItems:'center',justifyContent:'center',
                   cursor:'pointer',fontSize:cell*0.55,
-                  color: p?.[0]==='w' ? '#e0e0e0' : '#555',
+                  color: p?.[0]==='w' ? '#e8e8e8' : '#FF9F0A',
                   boxShadow:isMove?'inset 0 0 0 2px #00CFFF44':isSel?'inset 0 0 0 2px #FF9F0A':undefined,
                   transition:'background 0.1s',
                 }}>
@@ -758,27 +679,31 @@ function ChessGame() {
   );
 }
 
-// ── ЭКРАН ИГР ─────────────────────────────────
+// ── ЭКРАН ИГР (мобильная адаптация) ──────────
 function GamesScreen({ onBack }) {
-  const [game, setGame] = useState(null); // null | "tetris" | "snake"
+  const [game, setGame] = useState(null);
+  const mobile = window.innerWidth < 600;
 
   if (game) return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 200, fontFamily: F, padding: 16 }}>
-      <div style={{ background: "#0d0d0d", border: "1px solid #2a2a2a",
-        padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
-          borderBottom: "1px solid #1a1a1a", paddingBottom: 12 }}>
-          <span style={{ fontSize: 11, letterSpacing: 4, color: "#555" }}>
-            // {game === "tetris" ? "ТЕТРИС" : game === "snake" ? "ЗМЕЙКА" : "ШАХМАТЫ"}
-          </span>
-          <button onClick={() => setGame(null)} style={{ background: "transparent",
-            border: "1px solid #1e1e1e", color: "#333", fontFamily: F,
-            fontSize: 10, letterSpacing: 2, padding: "6px 12px", cursor: "pointer" }}>
-            ЗАКРЫТЬ
-          </button>
-        </div>
+    <div style={{ position: "fixed", inset: 0, background: "#0a0a0a",
+      display: "flex", flexDirection: "column", zIndex: 200, fontFamily: F,
+      overflow: "auto", WebkitOverflowScrolling: "touch" }}>
+      {/* шапка */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+        borderBottom: "1px solid #1a1a1a", padding: mobile ? "10px 14px" : "14px 20px",
+        background: "#0d0d0d", flexShrink: 0 }}>
+        <span style={{ fontSize: 11, letterSpacing: 4, color: "#555" }}>
+          // {game === "tetris" ? "ТЕТРИС" : game === "snake" ? "ЗМЕЙКА" : "ШАХМАТЫ"}
+        </span>
+        <button onClick={() => setGame(null)} style={{ background: "transparent",
+          border: "1px solid #1e1e1e", color: "#333", fontFamily: F,
+          fontSize: 10, letterSpacing: 2, padding: "6px 12px", cursor: "pointer" }}>
+          ЗАКРЫТЬ
+        </button>
+      </div>
+      {/* контент игры — по центру с прокруткой */}
+      <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center",
+        padding: mobile ? "12px 8px 24px" : "20px", overflow: "auto" }}>
         {game === "tetris" && <TetrisGame />}
         {game === "snake"  && <SnakeGame />}
         {game === "chess"  && <ChessGame />}
@@ -791,48 +716,38 @@ function GamesScreen({ onBack }) {
       alignItems: "center", justifyContent: "center", fontFamily: F, position: "relative", overflow: "hidden" }}>
       <CyberSpace />
       <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 40 }}>
+        alignItems: "center", gap: mobile ? 24 : 40, padding: mobile ? "20px 12px" : 0 }}>
         <div style={{ fontSize: 11, letterSpacing: 4, color: "#333" }}>// ИГРОВОЙ МОДУЛЬ</div>
-
-        {/* порталы */}
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: mobile ? 12 : 24, flexWrap: "wrap", justifyContent: "center" }}>
           {[
             { key: "tetris", label: "ТЕТРИС", desc: "одна фигура\nодин шанс", color: "#00CFFF" },
             { key: "snake",  label: "ЗМЕЙКА", desc: "иногда быстрее\nчем хочется", color: "#FF9F0A" },
-            { key: "chess", label: "ШАХМАТЫ", desc: "один король\nодна истина", color: "#888" },
+            { key: "chess",  label: "ШАХМАТЫ", desc: "один король\nодна истина", color: "#888" },
           ].map(p => (
             <button key={p.key} onClick={() => setGame(p.key)} style={{
-              width: 180, height: 220, background: "transparent",
+              width: mobile ? 140 : 180, height: mobile ? 170 : 220, background: "transparent",
               border: `1px solid ${p.color}22`, cursor: "pointer",
               display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", gap: 16, padding: 20,
-              transition: "border-color 0.2s, background 0.2s",
-              position: "relative", overflow: "hidden",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = p.color; e.currentTarget.style.background = `${p.color}08`; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = `${p.color}22`; e.currentTarget.style.background = "transparent"; }}
-            >
-              {/* портал-круг */}
-              <div style={{ width: 80, height: 80, borderRadius: "50%",
+              justifyContent: "center", gap: mobile ? 10 : 16, padding: mobile ? 14 : 20,
+              transition: "border-color 0.2s", position: "relative",
+            }}>
+              <div style={{ width: mobile ? 56 : 80, height: mobile ? 56 : 80, borderRadius: "50%",
                 border: `1px solid ${p.color}44`,
                 boxShadow: `0 0 20px ${p.color}22, inset 0 0 20px ${p.color}11`,
                 display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ width: 50, height: 50, borderRadius: "50%",
+                <div style={{ width: mobile ? 34 : 50, height: mobile ? 34 : 50, borderRadius: "50%",
                   background: `radial-gradient(circle, ${p.color}22, transparent)`,
                   border: `1px solid ${p.color}66` }} />
               </div>
-              <div style={{ fontFamily: F, fontSize: 13, letterSpacing: 4, color: "#888" }}>{p.label}</div>
-              <div style={{ fontFamily: F, fontSize: 10, letterSpacing: 1, color: "#333",
+              <div style={{ fontFamily: F, fontSize: mobile ? 11 : 13, letterSpacing: 4, color: "#888" }}>{p.label}</div>
+              <div style={{ fontFamily: F, fontSize: mobile ? 9 : 10, letterSpacing: 1, color: "#333",
                 whiteSpace: "pre-line", textAlign: "center", lineHeight: 1.8 }}>{p.desc}</div>
             </button>
           ))}
         </div>
-
         <button onClick={onBack} style={{ background: "transparent", border: "1px solid #2a2a2a",
           color: "#444", fontFamily: F, fontSize: 11, letterSpacing: 3,
-          padding: "10px 24px", cursor: "pointer" }}>
-          ← МЕНЮ
-        </button>
+          padding: "10px 24px", cursor: "pointer" }}>← МЕНЮ</button>
       </div>
     </div>
   );
@@ -841,114 +756,57 @@ function GamesScreen({ onBack }) {
 // ── КИБЕР-ПРОСТРАНСТВО ───────────────────────
 function CyberSpace() {
   const canvasRef = useRef(null);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    let animId;
-    let W, H, stars, grid;
-
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-      initStars();
-    }
-
+    let animId, W, H, stars, grid;
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; initStars(); }
     function initStars() {
       stars = Array.from({ length: 120 }, () => ({
-        x: Math.random() * W - W / 2,
-        y: Math.random() * H - H / 2,
-        z: Math.random() * W,
-        pz: 0,
+        x: Math.random() * W - W / 2, y: Math.random() * H - H / 2, z: Math.random() * W, pz: 0,
       }));
       grid = { offset: 0 };
     }
-
     function draw() {
-      ctx.fillStyle = "rgba(10,10,10,0.18)";
-      ctx.fillRect(0, 0, W, H);
-
-      const cx = W / 2;
-      const cy = H / 2;
-
-      // перспективная сетка
-      ctx.strokeStyle = "rgba(0,207,255,0.07)";
-      ctx.lineWidth = 0.5;
+      ctx.fillStyle = "rgba(10,10,10,0.18)"; ctx.fillRect(0, 0, W, H);
+      const cx = W / 2, cy = H / 2;
+      ctx.strokeStyle = "rgba(0,207,255,0.07)"; ctx.lineWidth = 0.5;
       grid.offset = (grid.offset + 0.4) % 60;
-
       for (let i = 0; i < 12; i++) {
-        const y = cy + 40 + i * 60 - grid.offset * i * 0.3;
-        if (y > H) continue;
+        const y = cy + 40 + i * 60 - grid.offset * i * 0.3; if (y > H) continue;
         const spread = (y - cy) / (H - cy);
-        ctx.beginPath();
-        ctx.moveTo(cx - spread * W * 0.9, y);
-        ctx.lineTo(cx + spread * W * 0.9, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx - spread * W * 0.9, y); ctx.lineTo(cx + spread * W * 0.9, y); ctx.stroke();
       }
       for (let i = -8; i <= 8; i++) {
-        ctx.beginPath();
-        ctx.moveTo(cx + i * 60, cy + 40);
-        ctx.lineTo(cx + i * (60 + Math.abs(i) * 18), H + 20);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + i * 60, cy + 40);
+        ctx.lineTo(cx + i * (60 + Math.abs(i) * 18), H + 20); ctx.stroke();
       }
-
-      // летящие звёзды
       stars.forEach(s => {
-        s.pz = s.z;
-        s.z -= 6;
-        if (s.z <= 0) {
-          s.x = Math.random() * W - cx;
-          s.y = Math.random() * H - cy;
-          s.z = W; s.pz = s.z;
-        }
-        const sx = (s.x / s.z) * W + cx;
-        const sy = (s.y / s.z) * H + cy;
-        const px = (s.x / s.pz) * W + cx;
-        const py = (s.y / s.pz) * H + cy;
-        const size = Math.max(0.1, (1 - s.z / W) * 2.5);
-        const speed = 1 - s.z / W;
-        ctx.strokeStyle = speed > 0.7
-          ? `rgba(255,159,10,${speed * 0.9})`
-          : `rgba(0,207,255,${speed * 0.7})`;
-        ctx.lineWidth = size;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(sx, sy);
-        ctx.stroke();
+        s.pz = s.z; s.z -= 6;
+        if (s.z <= 0) { s.x = Math.random() * W - cx; s.y = Math.random() * H - cy; s.z = W; s.pz = s.z; }
+        const sx = (s.x / s.z) * W + cx, sy = (s.y / s.z) * H + cy;
+        const px = (s.x / s.pz) * W + cx, py = (s.y / s.pz) * H + cy;
+        const size = Math.max(0.1, (1 - s.z / W) * 2.5), speed = 1 - s.z / W;
+        ctx.strokeStyle = speed > 0.7 ? `rgba(255,159,10,${speed * 0.9})` : `rgba(0,207,255,${speed * 0.7})`;
+        ctx.lineWidth = size; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(sx, sy); ctx.stroke();
       });
-
-      // редкие amber-вспышки
       if (Math.random() < 0.008) {
-        const fx = Math.random() * W;
-        const fy = Math.random() * H * 0.6;
+        const fx = Math.random() * W, fy = Math.random() * H * 0.6;
         const gr = ctx.createRadialGradient(fx, fy, 0, fx, fy, 40);
-        gr.addColorStop(0, "rgba(255,159,10,0.15)");
-        gr.addColorStop(1, "rgba(255,159,10,0)");
-        ctx.fillStyle = gr;
-        ctx.beginPath(); ctx.arc(fx, fy, 40, 0, Math.PI * 2); ctx.fill();
+        gr.addColorStop(0, "rgba(255,159,10,0.15)"); gr.addColorStop(1, "rgba(255,159,10,0)");
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(fx, fy, 40, 0, Math.PI * 2); ctx.fill();
       }
-
       animId = requestAnimationFrame(draw);
     }
-
-    resize();
-    window.addEventListener("resize", resize);
-    draw();
+    resize(); window.addEventListener("resize", resize); draw();
     return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
   }, []);
-
-  return (
-    <canvas ref={canvasRef} style={{
-      position: "absolute", inset: 0,
-      width: "100%", height: "100%",
-      pointerEvents: "none", zIndex: 1,
-    }} />
-  );
+  return <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }} />;
 }
 
 // ═══════════════════════════════════════════════
 export default function App() {
-  const [screen, setScreen] = useState("home"); // home | menu | kb | learn
+  const [screen, setScreen] = useState("home");
   const [fading, setFading] = useState(false);
   const [showNicoleDialog, setShowNicoleDialog] = useState(false);
 
@@ -959,58 +817,23 @@ export default function App() {
   const radioRef = useRef(null);
   const radioNoiseRef = useRef(null);
 
-function startRadioNoise() {
-  if (radioNoiseRef.current) return;
-  try {
-    const ctx = getCtx();
-    const bufSize = ctx.sampleRate * 2;
-    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
-    
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    
-    const filt = ctx.createBiquadFilter();
-    filt.type = "bandpass";
-    filt.frequency.value = 3000;
-    filt.Q.value = 0.5;
-    
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.015, ctx.currentTime + 1.5); // плавно нарастает
-    
-    src.connect(filt);
-    filt.connect(gain);
-    gain.connect(ctx.destination);
-    src.start();
-    
-    radioNoiseRef.current = { src, gain, ctx };
-  } catch {}
-}
-
-function toggleRadio() {
-  if (radioOn) {
-    // плавно затихает потом останавливается
-    if (radioNoiseRef.current) {
-      const { gain, ctx, src } = radioNoiseRef.current;
-      gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
-      setTimeout(() => {
-        try { src.stop(); } catch {}
-        radioNoiseRef.current = null;
-      }, 1600);
-    }
-    radioRef.current?.pause();
-    setRadioOn(false);
-  } else {
-    const idx = Math.floor(Math.random() * TRACKS.length);
-    playTrack(idx);
-    startRadioNoise();
-    setRadioOn(true);
+  function startRadioNoise() {
+    if (radioNoiseRef.current) return;
+    try {
+      const ctx = getCtx();
+      const bufSize = ctx.sampleRate * 2;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+      const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+      const filt = ctx.createBiquadFilter(); filt.type = "bandpass"; filt.frequency.value = 3000; filt.Q.value = 0.5;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.015, ctx.currentTime + 1.5);
+      src.connect(filt); filt.connect(gain); gain.connect(ctx.destination); src.start();
+      radioNoiseRef.current = { src, gain, ctx };
+    } catch {}
   }
-}
 
   const [logoText, setLogoText] = useState("НИКОЛОКИ");
   const [btnText, setBtnText] = useState("ВОЙТИ В ПОТОК");
@@ -1029,23 +852,14 @@ function toggleRadio() {
   useEffect(() => () => clearTimers(), []);
 
   function toggleHum() {
-    if (humOn) {
-      try { humNodesRef.current?.gain.disconnect(); } catch {}
-      setHumOn(false);
-      return;
-    }
+    if (humOn) { try { humNodesRef.current?.gain.disconnect(); } catch {} setHumOn(false); return; }
     try {
       const ctx = getCtx();
-      if (humNodesRef.current?.gain) {
-        humNodesRef.current.gain.connect(ctx.destination);
-        setHumOn(true);
-        return;
-      }
+      if (humNodesRef.current?.gain) { humNodesRef.current.gain.connect(ctx.destination); setHumOn(true); return; }
       const o1 = ctx.createOscillator(); o1.type = "sawtooth"; o1.frequency.value = 55;
-      const o2 = ctx.createOscillator(); o2.type = "sine";     o2.frequency.value = 110.2;
+      const o2 = ctx.createOscillator(); o2.type = "sine"; o2.frequency.value = 110.2;
       const o3 = ctx.createOscillator(); o3.type = "triangle"; o3.frequency.value = 82.4;
-      const filt = ctx.createBiquadFilter();
-      filt.type = "lowpass"; filt.frequency.value = 400; filt.Q.value = 3;
+      const filt = ctx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 400; filt.Q.value = 3;
       const gain = ctx.createGain(); gain.gain.value = 0.04;
       [o1, o2, o3].forEach(o => o.connect(filt));
       filt.connect(gain); gain.connect(ctx.destination);
@@ -1055,63 +869,51 @@ function toggleRadio() {
     } catch {}
   }
 
-const TRACKS = [
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Гнев_ltbllf.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/Тишина_hfyx6c.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Свобода_tyd1s4.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Думаешь_это_шутка_mps3ji.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Земля_Тает_hxy7jk.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928013/Кричу_yhodpx.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928022/Медный_всадник_bjddmd.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Надежда_ms2bjw.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928017/Не_догнать_lnp0yf.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928025/Одиночество_eyx6r9.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928008/Система_на_нуле_hccnkk.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Старик_и_Липси_tckgm9.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Страх_hbfpbh.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928015/Тик-Так_eidl36.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/%D0%A2%D0%B8%D1%80%D0%B5-%D1%82%D0%BE%D1%87%D0%BA%D0%B0_v6i3f7.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928020/Цветы_обещания_cluqxu.wav",
-  "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928023/Мир_без_границ_II_ffv9ah.wav",
-];
+  const TRACKS = [
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Гнев_ltbllf.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/Тишина_hfyx6c.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Свобода_tyd1s4.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928009/Думаешь_это_шутка_mps3ji.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928010/Земля_Тает_hxy7jk.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928013/Кричу_yhodpx.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928022/Медный_всадник_bjddmd.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Надежда_ms2bjw.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928017/Не_догнать_lnp0yf.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928025/Одиночество_eyx6r9.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928008/Система_на_нуле_hccnkk.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Старик_и_Липси_tckgm9.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928014/Страх_hbfpbh.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928015/Тик-Так_eidl36.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928019/%D0%A2%D0%B8%D1%80%D0%B5-%D1%82%D0%BE%D1%87%D0%BA%D0%B0_v6i3f7.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928020/Цветы_обещания_cluqxu.wav",
+    "https://res.cloudinary.com/dm0kbfevd/video/upload/v1777928023/Мир_без_границ_II_ffv9ah.wav",
+  ];
   const radioIndexRef = useRef(0);
 
   function playTrack(index) {
-    if (radioRef.current) {
-      radioRef.current.pause();
-      radioRef.current.onended = null;
-    }
+    if (radioRef.current) { radioRef.current.pause(); radioRef.current.onended = null; }
     radioIndexRef.current = index;
-    const track = TRACKS[index];
-    radioRef.current = new Audio(track);
+    radioRef.current = new Audio(TRACKS[index]);
     radioRef.current.volume = 0.5;
-    radioRef.current.onended = () => {
-      const next = (radioIndexRef.current + 1) % TRACKS.length;
-      playTrack(next);
-    };
+    radioRef.current.onended = () => { playTrack((radioIndexRef.current + 1) % TRACKS.length); };
     radioRef.current.play().catch(e => console.log("ошибка:", e));
   }
 
- function toggleRadio() {
-  if (radioOn) {
-    radioRef.current?.pause();
-    if (radioNoiseRef.current) {
-      radioNoiseRef.current.src.stop();
-      radioNoiseRef.current = null;
+  function toggleRadio() {
+    if (radioOn) {
+      radioRef.current?.pause();
+      if (radioNoiseRef.current) { try { radioNoiseRef.current.src.stop(); } catch {} radioNoiseRef.current = null; }
+      setRadioOn(false);
+    } else {
+      playTrack(Math.floor(Math.random() * TRACKS.length));
+      startRadioNoise();
+      setRadioOn(true);
     }
-    setRadioOn(false);
-  } else {
-    const idx = Math.floor(Math.random() * TRACKS.length);
-    playTrack(idx);
-    startRadioNoise();
-    setRadioOn(true);
   }
-}
 
   function skipRadio() {
     if (!radioOn) return;
-    const next = (radioIndexRef.current + 1) % TRACKS.length;
-    playTrack(next);
+    playTrack((radioIndexRef.current + 1) % TRACKS.length);
   }
 
   function runGlitch(onDone) {
@@ -1135,26 +937,14 @@ const TRACKS = [
     setBtnText("СИГНАЛ ОБНАРУЖЕН");
     runGlitch(() => { setBtnText("ВОЙТИ В ПОТОК"); setScreen("menu"); });
   }
+
   function navigateTo(newScreen) {
-  setFading(true);
-  playGlitchSound();
-  setGlitchActive(true);
-  setGlitchColor(Math.random() > 0.5 ? "amber" : "ice");
-  setTimeout(() => {
-    setScreen(newScreen);
-    setGlitchActive(false);
-    setTimeout(() => setFading(false), 300);
-  }, 400);
-}
+    setFading(true); playGlitchSound();
+    setGlitchActive(true); setGlitchColor(Math.random() > 0.5 ? "amber" : "ice");
+    setTimeout(() => { setScreen(newScreen); setGlitchActive(false); setTimeout(() => setFading(false), 300); }, 400);
+  }
 
   const cursor = <span style={{ opacity: cursorOn ? 1 : 0, color: "#FF9F0A", marginLeft: 2, transition: "opacity 0.1s" }}>▮</span>;
-
-  const AudioRow = () => (
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-      <Btn onClick={toggleHum} amber={humOn} sm>ГУЛ: {humOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
-      <Btn onClick={toggleRadio} ice={radioOn} sm>РАДИО: {radioOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
-    </div>
-  );
 
   // ── HOME ──────────────────────────────────
   if (screen === "home") return (
@@ -1166,8 +956,8 @@ const TRACKS = [
         <button onMouseEnter={startHover} onMouseLeave={stopHover} onClick={handleEnter}
           style={{ position: "relative", zIndex: 2,
             background: "transparent", border: "1px solid #444", color: "#888",
-            fontFamily: F, fontSize: "clamp(16px, 3vw, 24px)", letterSpacing: 6,
-            padding: "24px 56px", cursor: "pointer",
+            fontFamily: F, fontSize: mobile ? "16px" : "clamp(16px, 3vw, 24px)", letterSpacing: mobile ? 3 : 6,
+            padding: mobile ? "18px 32px" : "24px 56px", cursor: "pointer",
             transition: "border-color 0.2s, color 0.2s" }}>
           {btnText}
         </button>
@@ -1182,17 +972,17 @@ const TRACKS = [
       <GlitchBars active={glitchActive} color={glitchColor} />
       <Shell fading={fading}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", minHeight: 400, gap: 0, textAlign: "center" }}>
+          justifyContent: "center", minHeight: mobile ? 300 : 400, gap: 0, textAlign: "center" }}>
 
-          <div style={{ marginBottom: 48 }}>
-            <div style={{ fontSize: mobile ? 36 : 56, fontWeight: 700, letterSpacing: "0.2em",
+          <div style={{ marginBottom: mobile ? 28 : 48 }}>
+            <div style={{ fontSize: mobile ? 28 : 56, fontWeight: 700, letterSpacing: "0.2em",
               color: "#e0e0e0", textShadow: logoShadow, lineHeight: 1, userSelect: "none" }}>
               {logoText}{cursor}
             </div>
-            <div style={{ fontSize: 11, letterSpacing: 4, color: "#333", marginTop: 10 }}>// ВЫБЕРИ НАПРАВЛЕНИЕ</div>
+            <div style={{ fontSize: mobile ? 9 : 11, letterSpacing: mobile ? 2 : 4, color: "#333", marginTop: 10 }}>// ВЫБЕРИ НАПРАВЛЕНИЕ</div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: mobile ? "100%" : 420 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: mobile ? 8 : 12, width: mobile ? "100%" : 420 }}>
             {[
               { label: "ПОГОВОРИТЬ С НИКОЛЬ", action: () => setShowNicoleDialog(true) },
               { label: "БАЗА ЗНАНИЙ",          action: () => navigateTo("kb") },
@@ -1201,45 +991,29 @@ const TRACKS = [
             ].map(item => (
               <button key={item.label} onClick={item.action} style={{
                 background: "transparent", border: "1px solid #2a2a2a", color: "#666",
-                fontFamily: F, fontSize: 15, letterSpacing: 4,
-                padding: "18px 14px", cursor: "pointer", width: "100%",
+                fontFamily: F, fontSize: mobile ? 12 : 15, letterSpacing: mobile ? 2 : 4,
+                padding: mobile ? "14px 10px" : "18px 14px", cursor: "pointer", width: "100%",
                 transition: "border-color 0.15s, color 0.15s",
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#555"; e.currentTarget.style.color = "#aaa"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#2a2a2a"; e.currentTarget.style.color = "#666"; }}
-              >
-                {item.label}
-              </button>
+              }}>{item.label}</button>
             ))}
           </div>
 
-          <div style={{ marginTop: 40, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ marginTop: mobile ? 20 : 40, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             <Btn sm onClick={toggleHum} amber={humOn}>ГУЛ: {humOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
             <Btn sm onClick={toggleRadio} ice={radioOn}>РАДИО: {radioOn ? "ВКЛ" : "ВЫКЛ"}</Btn>
             <Btn sm onClick={skipRadio} ice={radioOn}>⏭</Btn>
             <Btn sm onClick={() => navigateTo("home")}>← ВЫХОД</Btn>
           </div>
-          {radioMsg && <div style={{ marginTop: 10, fontSize: 11, letterSpacing: 2, color: "#00CFFF", opacity: 0.6 }}>РАДИО: СИГНАЛ НЕ НАЙДЕН</div>}
-          <div style={{ marginTop: 28, fontSize: 12, letterSpacing: 3, color: "#888", opacity: 0.4 }}>NO-LIE · NO-SUBTEXT · NO-HALFTRUTH</div>
+          <div style={{ marginTop: mobile ? 16 : 28, fontSize: mobile ? 10 : 12, letterSpacing: 3, color: "#888", opacity: 0.4 }}>
+            NO-LIE · NO-SUBTEXT · NO-HALFTRUTH
+          </div>
         </div>
       </Shell>
     </>
   );
 
-  // ── БАЗА ЗНАНИЙ ───────────────────────────
-  if (screen === "kb") return (
-<Shell fading={fading}><KnowledgeBase onBack={() => navigateTo("menu")} /></Shell>
-  );
-
-  // ── УЗНАТЬ БОЛЬШЕ ─────────────────────────
-  if (screen === "learn") return (
-   <Shell fading={fading}><LearnMore onBack={() => navigateTo("menu")} /></Shell>
-  );
-
-  // ── ИГРЫ ──────────────────────────────────
-  if (screen === "games") return (
-  <GamesScreen onBack={() => navigateTo("menu")} />
-);
-
+  if (screen === "kb") return <Shell fading={fading}><KnowledgeBase onBack={() => navigateTo("menu")} /></Shell>;
+  if (screen === "learn") return <Shell fading={fading}><LearnMore onBack={() => navigateTo("menu")} /></Shell>;
+  if (screen === "games") return <GamesScreen onBack={() => navigateTo("menu")} />;
   return null;
 }
